@@ -44,10 +44,12 @@ public class UserService {
     }
 
     public User updateUser(String username, User user) {
-        if (repo.findByUsername(username) == null) {
+        User tmp = repo.findByUsername(username);
+        if (tmp == null) {
             return null;
         }
-        //repo.
-        return null;
+        user.setId(tmp.getId());
+        repo.save(user);
+        return user;
     }
 }

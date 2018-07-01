@@ -73,8 +73,13 @@ public class UserResource {
     @PutMapping(value = "/{username}", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<?> updateUser(@PathVariable("username") String username, @RequestBody UserDTO userDto) throws ParseException {
         User user = convertToEntity(userDto);
-        userService.updateUser(username, user);
-        return null;
+        User updated = userService.updateUser(username, user);
+        if (updated == null) {
+            return new ResponseEntity(new CustomError("Unable to Update. User with username " + username + " does not exist."),
+                    HttpStatus.NOT_FOUND);
+        }
+        UserDTO updatedDto = convertToDto(user);
+        return new ResponseEntity(updatedDto, HttpStatus.OK);
     }
 
     private UserDTO convertToDto(User user) {
