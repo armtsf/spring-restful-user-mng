@@ -42,10 +42,10 @@ public class UserResource {
     @GetMapping(value = "/{username}", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<?> getUserByUsername(@PathVariable("username") String username) {
         User user = userService.findByUsername(username);
-        UserDTO userDto = convertToDto(user);
         if (user == null) {
             return new ResponseEntity(new CustomError("User with username " + username + " not found."), HttpStatus.NOT_FOUND);
         }
+        UserDTO userDto = convertToDto(user);
         return new ResponseEntity<UserDTO>(userDto, HttpStatus.OK);
     }
 
@@ -60,13 +60,20 @@ public class UserResource {
         return new ResponseEntity(HttpStatus.CREATED);
     }
 
-    @DeleteMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity deleteUser(@PathVariable("id") String id) {
-        return null;
+    @DeleteMapping(value = "/{username}", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseEntity deleteUser(@PathVariable("username") String username) {
+        boolean success = userService.deleteByUsername(username);
+        if (!success) {
+            return new ResponseEntity(new CustomError("Unable to delete. User with username " + username + " does not exist."),
+                    HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity(HttpStatus.OK);
     }
 
-    @PutMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity updateUser(@PathVariable("id") String id) {
+    @PutMapping(value = "/{username}", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseEntity<?> updateUser(@PathVariable("username") String username, @RequestBody UserDTO userDto) {
+        User user = convertToEntity(userDto);
+        userService.updateUser(username, user);
         return null;
     }
 
