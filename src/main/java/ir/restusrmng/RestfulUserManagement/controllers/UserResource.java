@@ -71,7 +71,7 @@ public class UserResource {
     }
 
     @PutMapping(value = "/{username}", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<?> updateUser(@PathVariable("username") String username, @RequestBody UserDTO userDto) {
+    public ResponseEntity<?> updateUser(@PathVariable("username") String username, @RequestBody UserDTO userDto) throws ParseException {
         User user = convertToEntity(userDto);
         userService.updateUser(username, user);
         return null;
