@@ -1,6 +1,5 @@
 package ir.restusrmng.RestfulUserManagement.controllers;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class UserDTO {
 

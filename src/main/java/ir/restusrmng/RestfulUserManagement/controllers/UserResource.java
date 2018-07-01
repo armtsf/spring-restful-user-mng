@@ -1,8 +1,7 @@
 package ir.restusrmng.RestfulUserManagement.controllers;
 
 import ir.restusrmng.RestfulUserManagement.models.User;
-import ir.restusrmng.RestfulUserManagement.repositories.UserRepository;
-import ir.restusrmng.RestfulUserManagement.services.UserService;
+import ir.restusrmng.RestfulUserManagement.services.UserServiceImpl;
 import ir.restusrmng.RestfulUserManagement.utils.CustomError;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,16 +19,13 @@ import java.util.stream.Collectors;
 public class UserResource {
 
     @Autowired
-    private UserRepository repo;
-
-    @Autowired
-    private UserService userService;
+    private UserServiceImpl userServiceImpl;
 
     private ModelMapper mapper = new ModelMapper();
 
     @GetMapping(consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<List<UserDTO>> getUsers() {
-        List<User> users = userService.findAll();
+        List<User> users = userServiceImpl.findAll();
         if (users.isEmpty()) {
             return new ResponseEntity(HttpStatus.NO_CONTENT);
         }
@@ -41,7 +37,7 @@ public class UserResource {
 
     @GetMapping(value = "/{username}", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<?> getUserByUsername(@PathVariable("username") String username) {
-        User user = userService.findByUsername(username);
+        User user = userServiceImpl.findByUsername(username);
         if (user == null) {
             return new ResponseEntity(new CustomError("User with username " + username + " not found."), HttpStatus.NOT_FOUND);
         }
@@ -52,7 +48,7 @@ public class UserResource {
     @PostMapping(consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity createUser(@RequestBody UserDTO userDto) throws ParseException {
         User user = convertToEntity(userDto);
-        User newUser = userService.createUser(user);
+        User newUser = userServiceImpl.createUser(user);
         if (newUser == null) {
             return new ResponseEntity(new CustomError("Unable to create. A User with name " +
                     user.getUsername() + " already exist."),HttpStatus.CONFLICT);
@@ -62,7 +58,7 @@ public class UserResource {
 
     @DeleteMapping(value = "/{username}", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity deleteUser(@PathVariable("username") String username) {
-        boolean success = userService.deleteByUsername(username);
+        boolean success = userServiceImpl.deleteByUsername(username);
         if (!success) {
             return new ResponseEntity(new CustomError("Unable to delete. User with username " + username + " does not exist."),
                     HttpStatus.NOT_FOUND);
@@ -73,13 +69,23 @@ public class UserResource {
     @PutMapping(value = "/{username}", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<?> updateUser(@PathVariable("username") String username, @RequestBody UserDTO userDto) throws ParseException {
         User user = convertToEntity(userDto);
-        User updated = userService.updateUser(username, user);
+        User updated = userServiceImpl.updateUser(username, user);
         if (updated == null) {
             return new ResponseEntity(new CustomError("Unable to Update. User with username " + username + " does not exist."),
                     HttpStatus.NOT_FOUND);
         }
         UserDTO updatedDto = convertToDto(user);
         return new ResponseEntity(updatedDto, HttpStatus.OK);
+    }
+
+    @PostMapping(value = "/login", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseEntity<?> loginUser(@RequestBody UserDTO userDto) throws ParseException {
+        User user = convertToEntity(userDto);
+        boolean login = userServiceImpl.login(user);
+        if (!login) {
+            return new ResponseEntity(new CustomError("Invalid username or password"), HttpStatus.CONFLICT);
+        }
+        return new ResponseEntity(HttpStatus.OK);
     }
 
     private UserDTO convertToDto(User user) {
