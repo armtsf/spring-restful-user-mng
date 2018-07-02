@@ -1,15 +1,14 @@
 package ir.restusrmng.RestfulUserManagement.utils;
 
+import java.util.Date;
+
 public class CustomError {
 
-    private String errorMessage;
+    private String message;
 
-    public CustomError(String errorMessage){
-        this.errorMessage = errorMessage;
-    }
-
-    public String getErrorMessage() {
-        return errorMessage;
+    public CustomError(String message) {
+        super();
+        this.message = message;
     }
 
 }
