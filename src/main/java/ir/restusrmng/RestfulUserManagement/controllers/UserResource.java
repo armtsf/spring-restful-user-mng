@@ -1,26 +1,25 @@
 package ir.restusrmng.RestfulUserManagement.controllers;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import ir.restusrmng.RestfulUserManagement.models.User;
 import ir.restusrmng.RestfulUserManagement.services.AuthenticationService;
 import ir.restusrmng.RestfulUserManagement.services.UserService;
-import ir.restusrmng.RestfulUserManagement.services.UserServiceImpl;
-import ir.restusrmng.RestfulUserManagement.utils.CustomError;
+import ir.restusrmng.RestfulUserManagement.utils.LoginResponse;
+import ir.restusrmng.RestfulUserManagement.utils.ValidationRequest;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.text.ParseException;
-import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RequestMapping("/users")
@@ -33,11 +32,11 @@ public class UserResource {
     @Autowired
     AuthenticationService authenticationService;
 
-    private Gson gson = new Gson();
+    private ObjectMapper jckson = new ObjectMapper();
 
     private ModelMapper mapper = new ModelMapper();
 
-    @GetMapping(consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @GetMapping(produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<List<UserDTO>> getUsers() {
         List<User> users = userService.findAll();
         if (users.isEmpty()) {
@@ -49,18 +48,18 @@ public class UserResource {
         return new ResponseEntity<List<UserDTO>>(usersDto, HttpStatus.OK);
     }
 
-    @GetMapping(value = "/{username}", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<?> getUserByUsername(@PathVariable("username") String username) {
-        User user = userService.findByUsername(username);
-        if (user == null) {
+    @GetMapping(value = "/{username}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseEntity<UserDTO> getUserByUsername(@PathVariable("username") String username) {
+        Optional<User> user = userService.findByUsername(username);
+        if (!user.isPresent()) {
             return new ResponseEntity(HttpStatus.NOT_FOUND);
         }
-        UserDTO userDto = convertToDto(user);
+        UserDTO userDto = convertToDto(user.get());
         return new ResponseEntity<UserDTO>(userDto, HttpStatus.OK);
     }
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<?> createUser(@Valid @RequestBody UserDTO userDto) throws ParseException {
+    public ResponseEntity createUser(@Valid @RequestBody UserDTO userDto) throws ParseException {
         User user = convertToEntity(userDto);
         User newUser = userService.createUser(user);
         if (newUser == null) {
@@ -69,7 +68,7 @@ public class UserResource {
         return new ResponseEntity(HttpStatus.CREATED);
     }
 
-    @DeleteMapping(value = "/{username}", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @DeleteMapping(value = "/{username}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity deleteUser(@PathVariable("username") String username) {
         boolean success = userService.deleteByUsername(username);
         if (!success) {
@@ -79,37 +78,35 @@ public class UserResource {
     }
 
     @PutMapping(value = "/{username}", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<?> updateUser(@PathVariable("username") String username, @RequestBody UserDTO userDto) throws ParseException {
+    public ResponseEntity<UserDTO> updateUser(@PathVariable("username") String username, @RequestBody UserDTO userDto) throws ParseException {
         User user = convertToEntity(userDto);
         User updated = userService.updateUser(username, user);
         if (updated == null) {
             return new ResponseEntity(HttpStatus.NOT_FOUND);
         }
         UserDTO updatedDto = convertToDto(user);
+
         return new ResponseEntity(updatedDto, HttpStatus.OK);
     }
 
     @PostMapping(value = "/login", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity loginUser(@RequestBody UserDTO userDto) throws ParseException {
-        User user = convertToEntity(userDto);
-        boolean login = userService.login(user);
-        if (!login) {
-            return new ResponseEntity(HttpStatus.CONFLICT);
+    public ResponseEntity<LoginResponse> loginUser(@RequestBody UserDTO userDto) throws ParseException {
+        User loginUser = userService.login(userDto.getUsername(), userDto.getPassword());
+        if (loginUser == null) {
+            return new ResponseEntity(HttpStatus.UNAUTHORIZED);
         }
-        String token = authenticationService.getToken(user);
-        return ResponseEntity.ok(gson.toJson(token));
+        LoginResponse response = new LoginResponse(authenticationService.getToken(loginUser));
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping(value = "/validation" , consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,  produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity validateUser(@RequestBody String reqJson) {
-        JsonObject jobj = new Gson().fromJson(reqJson, JsonObject.class);
-        String token = jobj.get("token").toString();
-        token = token.substring(1, token.length()-1);
+    public ResponseEntity validateUser(@RequestBody ValidationRequest reqJson) {
+        String token = reqJson.getToken();
         boolean check = authenticationService.checkToken(token);
-        if (check) {
-            return ResponseEntity.ok().build();
+        if (!check) {
+            return new ResponseEntity(HttpStatus.UNAUTHORIZED);
         }
-        return new ResponseEntity(HttpStatus.UNAUTHORIZED);
+        return ResponseEntity.ok().build();
     }
 
     private UserDTO convertToDto(User user) {

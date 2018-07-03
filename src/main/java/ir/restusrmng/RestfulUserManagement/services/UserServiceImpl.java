@@ -4,8 +4,10 @@ import ir.restusrmng.RestfulUserManagement.models.User;
 import ir.restusrmng.RestfulUserManagement.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -17,10 +19,12 @@ public class UserServiceImpl implements UserService {
         return repo.findAll();
     }
 
-    public User findByUsername(String username) {
-        return repo.findByUsername(username);
+    public Optional<User> findByUsername(String username) {
+        return Optional.of(this.repo.findByUsername(username));
+
     }
 
+    @Transactional
     public User createUser(User user) {
         if (repo.findByUsername(user.getUsername()) != null) {
             return null;
@@ -48,12 +52,11 @@ public class UserServiceImpl implements UserService {
         return user;
     }
 
-    public boolean login(User user) {
-        String name = user.getUsername();
-        String password = user.getPassword();
-        if ((repo.findByUsername(name) == null) || !password.equals(repo.findByUsername(name).getPassword())) {
-            return false;
+    public User login(String username, String password) {
+        User user = this.repo.findByUsername(username);
+        if ((user == null) || !password.equals(user.getPassword())) {
+            return null;
         }
-        return true;
+        return user;
     }
 }
