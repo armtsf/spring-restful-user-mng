@@ -8,6 +8,7 @@ import ir.restusrmng.RestfulUserManagement.models.User;
 import ir.restusrmng.RestfulUserManagement.services.AuthenticationService;
 import ir.restusrmng.RestfulUserManagement.services.UserService;
 import ir.restusrmng.RestfulUserManagement.utils.LoginResponse;
+import ir.restusrmng.RestfulUserManagement.utils.UserList;
 import ir.restusrmng.RestfulUserManagement.utils.ValidationRequest;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,15 +38,15 @@ public class UserResource {
     private ModelMapper mapper = new ModelMapper();
 
     @GetMapping(produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<List<UserDTO>> getUsers() {
+    public ResponseEntity<UserList> getUsers() {
         List<User> users = userService.findAll();
-        if (users.isEmpty()) {
+        if (users == null) {
             return new ResponseEntity(HttpStatus.NO_CONTENT);
         }
-        List<UserDTO> usersDto =  users.stream()
+        UserList usersDto =  new UserList(users.stream()
                 .map(user -> convertToDto(user))
-                .collect(Collectors.toList());
-        return new ResponseEntity<List<UserDTO>>(usersDto, HttpStatus.OK);
+                .collect(Collectors.toList()));
+        return new ResponseEntity<UserList>(usersDto, HttpStatus.OK);
     }
 
     @GetMapping(value = "/{username}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
