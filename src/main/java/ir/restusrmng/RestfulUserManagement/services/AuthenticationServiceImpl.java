@@ -3,6 +3,7 @@ package ir.restusrmng.RestfulUserManagement.services;
 import ir.restusrmng.RestfulUserManagement.models.User;
 import ir.restusrmng.RestfulUserManagement.repositories.TokenRepository;
 import ir.restusrmng.RestfulUserManagement.repositories.UserRepository;
+import ir.restusrmng.RestfulUserManagement.utils.AuthenticationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -45,10 +46,10 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     public boolean checkToken(String token) {
-        if (tokenRepository.find(token) != null) {
-            return true;
+        if (tokenRepository.find(token) == null) {
+            throw new AuthenticationException("Invalid token.");
         }
-        return false;
+        return true;
     }
 
 }

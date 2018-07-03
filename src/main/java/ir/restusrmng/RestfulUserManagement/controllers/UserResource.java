@@ -6,7 +6,6 @@ import ir.restusrmng.RestfulUserManagement.services.AuthenticationService;
 import ir.restusrmng.RestfulUserManagement.services.UserService;
 import ir.restusrmng.RestfulUserManagement.utils.LoginResponse;
 import ir.restusrmng.RestfulUserManagement.utils.UserList;
-import ir.restusrmng.RestfulUserManagement.utils.UserNotFoundException;
 import ir.restusrmng.RestfulUserManagement.utils.ValidationRequest;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +17,6 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import java.text.ParseException;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RequestMapping("/users")
@@ -67,9 +65,7 @@ public class UserResource {
     @DeleteMapping(value = "/{username}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity deleteUser(@PathVariable("username") String username) {
         boolean success = userService.deleteByUsername(username);
-        if (!success) {
-            return new ResponseEntity(HttpStatus.NOT_FOUND);
-        }
+
         return new ResponseEntity(HttpStatus.OK);
     }
 
@@ -77,9 +73,6 @@ public class UserResource {
     public ResponseEntity<UserDTO> updateUser(@PathVariable("username") String username, @RequestBody UserDTO userDto) throws ParseException {
         User user = convertToEntity(userDto);
         User updated = userService.updateUser(username, user);
-        if (updated == null) {
-            return new ResponseEntity(HttpStatus.NOT_FOUND);
-        }
         UserDTO updatedDto = convertToDto(user);
 
         return new ResponseEntity(updatedDto, HttpStatus.OK);
@@ -88,9 +81,6 @@ public class UserResource {
     @PostMapping(value = "/login", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<LoginResponse> loginUser(@RequestBody UserDTO userDto) throws ParseException {
         User loginUser = userService.login(userDto.getUsername(), userDto.getPassword());
-        if (loginUser == null) {
-            return new ResponseEntity(HttpStatus.UNAUTHORIZED);
-        }
         LoginResponse response = new LoginResponse(authenticationService.getToken(loginUser));
         return ResponseEntity.ok(response);
     }
@@ -99,9 +89,6 @@ public class UserResource {
     public ResponseEntity validateUser(@RequestBody ValidationRequest reqJson) {
         String token = reqJson.getToken();
         boolean check = authenticationService.checkToken(token);
-        if (!check) {
-            return new ResponseEntity(HttpStatus.UNAUTHORIZED);
-        }
         return ResponseEntity.ok().build();
     }
 
