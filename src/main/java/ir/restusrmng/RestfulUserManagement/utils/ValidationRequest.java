@@ -8,7 +8,13 @@ public class ValidationRequest {
         this.token = token;
     }
 
+    public ValidationRequest() {}
+
     public String getToken() {
         return token;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
     }
 }

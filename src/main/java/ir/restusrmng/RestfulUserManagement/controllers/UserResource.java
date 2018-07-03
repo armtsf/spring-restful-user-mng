@@ -40,7 +40,7 @@ public class UserResource {
     @GetMapping(produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<UserList> getUsers() {
         List<User> users = userService.findAll();
-        if (users == null) {
+        if (users == null || users.isEmpty()) {
             return new ResponseEntity(HttpStatus.NO_CONTENT);
         }
         UserList usersDto =  new UserList(users.stream()
