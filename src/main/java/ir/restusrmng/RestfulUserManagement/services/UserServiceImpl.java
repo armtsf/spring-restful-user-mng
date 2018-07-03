@@ -20,7 +20,8 @@ public class UserServiceImpl implements UserService {
     }
 
     public Optional<User> findByUsername(String username) {
-        return Optional.of(this.repo.findByUsername(username));
+        User found = this.repo.findByUsername(username);
+        return Optional.ofNullable(found);
 
     }
 
@@ -33,6 +34,7 @@ public class UserServiceImpl implements UserService {
         return user;
     }
 
+    @Transactional
     public boolean deleteByUsername(String username) {
         User user = repo.findByUsername(username);
         if (user == null) {
@@ -42,6 +44,7 @@ public class UserServiceImpl implements UserService {
         return true;
     }
 
+    @Transactional
     public User updateUser(String username, User user) {
         User tmp = repo.findByUsername(username);
         if (tmp == null) {

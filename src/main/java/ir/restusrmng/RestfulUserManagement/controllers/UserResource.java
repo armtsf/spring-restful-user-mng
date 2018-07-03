@@ -6,6 +6,7 @@ import ir.restusrmng.RestfulUserManagement.services.AuthenticationService;
 import ir.restusrmng.RestfulUserManagement.services.UserService;
 import ir.restusrmng.RestfulUserManagement.utils.LoginResponse;
 import ir.restusrmng.RestfulUserManagement.utils.UserList;
+import ir.restusrmng.RestfulUserManagement.utils.UserNotFoundException;
 import ir.restusrmng.RestfulUserManagement.utils.ValidationRequest;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,7 +51,7 @@ public class UserResource {
     public ResponseEntity<UserDTO> getUserByUsername(@PathVariable("username") String username) {
         Optional<User> user = userService.findByUsername(username);
         if (!user.isPresent()) {
-            return new ResponseEntity(HttpStatus.NOT_FOUND);
+            throw new UserNotFoundException(username);
         }
         UserDTO userDto = convertToDto(user.get());
         return new ResponseEntity<UserDTO>(userDto, HttpStatus.OK);
