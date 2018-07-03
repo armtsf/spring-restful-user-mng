@@ -1,5 +1,6 @@
 package ir.restusrmng.RestfulUserManagement.services;
 
+import ir.restusrmng.RestfulUserManagement.utils.AuthenticationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
@@ -19,8 +20,7 @@ public class AuthenticationInterceptor extends HandlerInterceptorAdapter {
         String token = request.getHeader("token");
         if ((request.getMethod().equals("DELETE")) || (request.getMethod().equals("PUT"))) {
             if ((token == null) || (!authenticationService.checkToken(token))) {
-                response.setStatus(401);
-                return false;
+                throw new AuthenticationException("Invalid token.");
             }
         }
         return true;

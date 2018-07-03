@@ -2,6 +2,8 @@ package ir.restusrmng.RestfulUserManagement.services;
 
 import ir.restusrmng.RestfulUserManagement.models.User;
 import ir.restusrmng.RestfulUserManagement.repositories.UserRepository;
+import ir.restusrmng.RestfulUserManagement.utils.AuthenticationException;
+import ir.restusrmng.RestfulUserManagement.utils.UserNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,9 +21,10 @@ public class UserServiceImpl implements UserService {
         return repo.findAll();
     }
 
-    public Optional<User> findByUsername(String username) {
+    public User findByUsername(String username) {
         User found = this.repo.findByUsername(username);
-        return Optional.ofNullable(found);
+        Optional<User> t = Optional.ofNullable(found);
+        return t.orElseThrow(() -> new UserNotFoundException(username));
 
     }
 
@@ -37,8 +40,9 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public boolean deleteByUsername(String username) {
         User user = repo.findByUsername(username);
-        if (user == null) {
-            return false;
+        Optional<User> t = Optional.ofNullable(user);
+        if (!t.isPresent()) {
+            throw new UserNotFoundException(username);
         }
         repo.delete(user);
         return true;
@@ -47,8 +51,9 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public User updateUser(String username, User user) {
         User tmp = repo.findByUsername(username);
-        if (tmp == null) {
-            return null;
+        Optional<User> t = Optional.ofNullable(tmp);
+        if (!t.isPresent()) {
+            throw new UserNotFoundException(username);
         }
         user.setId(tmp.getId());
         repo.save(user);
@@ -58,7 +63,7 @@ public class UserServiceImpl implements UserService {
     public User login(String username, String password) {
         User user = this.repo.findByUsername(username);
         if ((user == null) || !password.equals(user.getPassword())) {
-            return null;
+            throw new AuthenticationException("Username or password invalid.");
         }
         return user;
     }

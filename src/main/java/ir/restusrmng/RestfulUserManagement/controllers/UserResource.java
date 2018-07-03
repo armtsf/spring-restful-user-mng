@@ -49,11 +49,8 @@ public class UserResource {
 
     @GetMapping(value = "/{username}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<UserDTO> getUserByUsername(@PathVariable("username") String username) {
-        Optional<User> user = userService.findByUsername(username);
-        if (!user.isPresent()) {
-            throw new UserNotFoundException(username);
-        }
-        UserDTO userDto = convertToDto(user.get());
+        User user = userService.findByUsername(username);
+        UserDTO userDto = convertToDto(user);
         return new ResponseEntity<UserDTO>(userDto, HttpStatus.OK);
     }
 

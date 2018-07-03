@@ -16,8 +16,4 @@ public class UserList {
         return userList;
     }
 
-    public boolean isEmpty() {
-        return (this.userList == null);
-    }
-
 }
