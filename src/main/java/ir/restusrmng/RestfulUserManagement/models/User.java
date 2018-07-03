@@ -18,7 +18,6 @@ public class User {
     @Size(min = 2, message = "Password should have at least 2 characters.")
     private String password;
 
-   // private int lastId = 0;
 
     public String getId() {
         return id;
@@ -30,10 +29,8 @@ public class User {
     }
 
     public User(String username, String password) {
-        //this.id = this.lastId + 1;
         this.username = username;
         this.password = password;
-     //   lastId++;
     }
 
     public User() {};
