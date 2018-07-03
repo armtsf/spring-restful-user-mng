@@ -5,5 +5,5 @@ import ir.restusrmng.RestfulUserManagement.models.User;
 public interface AuthenticationService {
     public String generateToken();
     public String getToken(User user);
-    public boolean checkToken(User user, String token);
+    public boolean checkToken(String token);
 }

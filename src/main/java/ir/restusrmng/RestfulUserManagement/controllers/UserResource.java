@@ -1,6 +1,8 @@
 package ir.restusrmng.RestfulUserManagement.controllers;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import ir.restusrmng.RestfulUserManagement.models.User;
 import ir.restusrmng.RestfulUserManagement.services.AuthenticationService;
 import ir.restusrmng.RestfulUserManagement.services.UserService;
@@ -13,6 +15,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.text.ParseException;
 import java.util.Date;
@@ -34,7 +38,7 @@ public class UserResource {
     private ModelMapper mapper = new ModelMapper();
 
     @GetMapping(consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<List<UserDTO>> getUsers(@RequestHeader(value = "token") String token) {
+    public ResponseEntity<List<UserDTO>> getUsers() {
         List<User> users = userService.findAll();
         if (users.isEmpty()) {
             return new ResponseEntity(HttpStatus.NO_CONTENT);
@@ -46,7 +50,7 @@ public class UserResource {
     }
 
     @GetMapping(value = "/{username}", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<?> getUserByUsername(@PathVariable("username") String username, @RequestHeader(value = "token") String token) {
+    public ResponseEntity<?> getUserByUsername(@PathVariable("username") String username) {
         User user = userService.findByUsername(username);
         if (user == null) {
             return new ResponseEntity(HttpStatus.NOT_FOUND);
@@ -66,7 +70,7 @@ public class UserResource {
     }
 
     @DeleteMapping(value = "/{username}", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity deleteUser(@PathVariable("username") String username, @RequestHeader(value = "token") String token) {
+    public ResponseEntity deleteUser(@PathVariable("username") String username) {
         boolean success = userService.deleteByUsername(username);
         if (!success) {
             return new ResponseEntity(HttpStatus.NOT_FOUND);
@@ -75,7 +79,7 @@ public class UserResource {
     }
 
     @PutMapping(value = "/{username}", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<?> updateUser(@PathVariable("username") String username, @RequestBody UserDTO userDto, @RequestHeader(value = "token") String token) throws ParseException {
+    public ResponseEntity<?> updateUser(@PathVariable("username") String username, @RequestBody UserDTO userDto) throws ParseException {
         User user = convertToEntity(userDto);
         User updated = userService.updateUser(username, user);
         if (updated == null) {
@@ -94,6 +98,18 @@ public class UserResource {
         }
         String token = authenticationService.getToken(user);
         return ResponseEntity.ok(gson.toJson(token));
+    }
+
+    @PostMapping(value = "/validation" , consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,  produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseEntity validateUser(@RequestBody String reqJson) {
+        JsonObject jobj = new Gson().fromJson(reqJson, JsonObject.class);
+        String token = jobj.get("token").toString();
+        token = token.substring(1, token.length()-1);
+        boolean check = authenticationService.checkToken(token);
+        if (check) {
+            return ResponseEntity.ok().build();
+        }
+        return new ResponseEntity(HttpStatus.UNAUTHORIZED);
     }
 
     private UserDTO convertToDto(User user) {

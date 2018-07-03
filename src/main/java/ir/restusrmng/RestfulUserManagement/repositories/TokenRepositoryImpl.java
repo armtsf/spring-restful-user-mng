@@ -7,6 +7,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
 
 import javax.annotation.PostConstruct;
+import java.util.concurrent.TimeUnit;
 
 @Repository
 public class TokenRepositoryImpl implements TokenRepository {
@@ -25,12 +26,13 @@ public class TokenRepositoryImpl implements TokenRepository {
     }
 
     @Override
-    public void save(String id, String token) {
-        hashOperations.put(KEY, id, token);
+    public void save(String token, String id) {
+        hashOperations.put(KEY, token, id);
+        redisTemplate.expire(token, 15, TimeUnit.MINUTES);
     }
 
     @Override
-    public String find(String id) {
-        return (String) hashOperations.get(KEY, id);
+    public String find(String token) {
+        return (String) hashOperations.get(KEY, token);
     }
 }

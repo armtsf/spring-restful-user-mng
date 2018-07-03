@@ -21,7 +21,6 @@ public class RedisConfig {
         final RedisTemplate<String, String> template = new RedisTemplate<String, String>();
         template.setConnectionFactory(jedisConnectionFactory());
         template.setValueSerializer(new GenericToStringSerializer<Object>(Object.class));
-        template.expire("TOKEN", 15, TimeUnit.MINUTES);
         return template;
     }
 }

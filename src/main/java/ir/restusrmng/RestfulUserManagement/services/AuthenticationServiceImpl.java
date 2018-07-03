@@ -2,6 +2,7 @@ package ir.restusrmng.RestfulUserManagement.services;
 
 import ir.restusrmng.RestfulUserManagement.models.User;
 import ir.restusrmng.RestfulUserManagement.repositories.TokenRepository;
+import ir.restusrmng.RestfulUserManagement.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -13,6 +14,9 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     @Autowired
     private TokenRepository tokenRepository;
+
+    @Autowired
+    private UserRepository userRepository;
 
     public String generateToken() {
         int minLimit = 65;
@@ -35,13 +39,13 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     public String getToken(User user) {
         String token = this.generateToken();
-        tokenRepository.save(user.getUsername(), token);
+        String id = userRepository.findByUsername(user.getUsername()).getId();
+        tokenRepository.save(token, id);
         return token;
     }
 
-    public boolean checkToken(User user, String token) {
-        String foundToken = tokenRepository.find(user.getId());
-        if (token.equals(foundToken)) {
+    public boolean checkToken(String token) {
+        if (tokenRepository.find(token) != null) {
             return true;
         }
         return false;
