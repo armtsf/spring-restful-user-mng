@@ -15,14 +15,14 @@ import java.util.Optional;
 public class UserServiceImpl implements UserService {
 
     @Autowired
-    private UserRepository repo;
+    private UserRepository userRepository;
 
     public List<User> findAll() {
-        return repo.findAll();
+        return userRepository.findAll();
     }
 
     public User findByUsername(String username) {
-        User found = this.repo.findByUsername(username);
+        User found = this.userRepository.findByUsername(username);
         Optional<User> t = Optional.ofNullable(found);
         return t.orElseThrow(() -> new UserNotFoundException(username));
 
@@ -30,38 +30,38 @@ public class UserServiceImpl implements UserService {
 
     @Transactional
     public User createUser(User user) {
-        if (repo.findByUsername(user.getUsername()) != null) {
+        if (userRepository.findByUsername(user.getUsername()) != null) {
             return null;
         }
-        repo.save(user);
+        userRepository.save(user);
         return user;
     }
 
     @Transactional
     public boolean deleteByUsername(String username) {
-        User user = repo.findByUsername(username);
+        User user = userRepository.findByUsername(username);
         Optional<User> t = Optional.ofNullable(user);
         if (!t.isPresent()) {
             throw new UserNotFoundException(username);
         }
-        repo.delete(user);
+        userRepository.delete(user);
         return true;
     }
 
     @Transactional
     public User updateUser(String username, User user) {
-        User tmp = repo.findByUsername(username);
+        User tmp = userRepository.findByUsername(username);
         Optional<User> t = Optional.ofNullable(tmp);
         if (!t.isPresent()) {
             throw new UserNotFoundException(username);
         }
         user.setId(tmp.getId());
-        repo.save(user);
+        userRepository.save(user);
         return user;
     }
 
     public User login(String username, String password) {
-        User user = this.repo.findByUsername(username);
+        User user = this.userRepository.findByUsername(username);
         if ((user == null) || !password.equals(user.getPassword())) {
             throw new AuthenticationException("Username or password invalid.");
         }
