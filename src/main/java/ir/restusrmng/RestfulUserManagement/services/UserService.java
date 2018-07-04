@@ -11,4 +11,5 @@ public interface UserService {
     public boolean deleteByUsername(String username);
     public User updateUser(String username, User user);
     public User login(String username, String password);
+    public void lock(String username);
 }

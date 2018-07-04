@@ -67,4 +67,15 @@ public class UserServiceImpl implements UserService {
         }
         return user;
     }
+
+    public void lock(String username) {
+        User user = userRepository.findByUsername(username);
+        Optional<User> t = Optional.ofNullable(user);
+        if (!t.isPresent()) {
+            throw new UserNotFoundException(username);
+        }
+        user.setLock(true);
+        userRepository.save(user);
+    }
+
 }

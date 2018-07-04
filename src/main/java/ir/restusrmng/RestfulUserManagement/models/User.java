@@ -18,6 +18,7 @@ public class User {
     @Size(min = 2, message = "Password should have at least 2 characters.")
     private String password;
 
+    private boolean lock;
 
     public String getId() {
         return id;
@@ -28,9 +29,19 @@ public class User {
         this.id = id;
     }
 
+    public boolean isLock() {
+        return lock;
+    }
+
+    public void setLock(boolean lock) {
+
+        this.lock = lock;
+    }
+
     public User(String username, String password) {
         this.username = username;
         this.password = password;
+        this.lock = false;
     }
 
     public User() {};
