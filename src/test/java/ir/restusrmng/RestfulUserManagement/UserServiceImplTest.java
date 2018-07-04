@@ -39,7 +39,6 @@ public class UserServiceImplTest {
 
     @Before
     public void setUp() {
-       // MockitoAnnotations.initMocks(this);
         User alex = new User("alex", "123");
         Mockito.when(userRepository.findByUsername(alex.getUsername())).thenReturn(alex);
     }
@@ -48,7 +47,7 @@ public class UserServiceImplTest {
     public void whenUserInRepository_thenUserShouldBeFound() {
         String name = "alex";
         User found = userServiceImpl.findByUsername(name);
-        assertEquals(found.getUsername(), name);
+        assertEquals(name, found.getUsername());
     }
 
     @Test(expected = UserNotFoundException.class)
