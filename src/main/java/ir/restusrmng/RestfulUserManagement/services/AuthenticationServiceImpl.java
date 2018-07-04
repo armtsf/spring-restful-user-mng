@@ -46,7 +46,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     public boolean checkToken(String token) {
-        if (tokenRepository.find(token) == null) {
+        if (tokenRepository.find(token) == null || !userRepository.findById(tokenRepository.find(token)).isPresent() || userRepository.findById(tokenRepository.find(token)).get().isLock()) {
             throw new AuthenticationException("Invalid token.");
         }
         return true;
